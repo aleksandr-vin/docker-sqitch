@@ -2,24 +2,68 @@
 
 This repository contains Dockerfile of sqitch for Docker
 
-Usage
 
-    docker run -it --rm meticulo3366/docker-sqitch sqitch
+## Build image
 
-Specific Example PostgreSQL
+    $ docker build -t sqitch .
+    $ docker tag sqitch:psql
+    $ docker tag sqitch:mysql
 
-	**DB_USER** = database user
-	**DB_NAME** = database name
-	**DB_HOST**  = host server for postgres
-	**DB_PORT** = database port
 
-	docker run -it --rm meticulo3366/docker-sqitch sqitch deploy db:pg://${DB_USER}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+## Usage
 
-Specific Example mySQL
 
-	**DB_USER** = database user
-	**DB_NAME** = database name
-	**DB_HOST**  = host server for postgres
-	**DB_PORT** = database port
+### See Help
 
-	docker run -it --rm meticulo3366/docker-sqitch sqitch deploy db:mysql://${DB_USER}@${DB_HOST}/${DB_NAME}
+As `sqitch --help`:
+
+    $ docker run -it --rm sqitch
+
+
+### Configure User
+
+    $ docker run --rm -it -v ~/.sqitch:/root/.sqitch sqitch config --user user.name 'Aleksandr Vinokurov'
+    $ docker run --rm -it -v ~/.sqitch:/root/.sqitch sqitch config --user user.email 'aleksandr.vin@gmail.com'
+    $ docker run --rm -it -v ~/.sqitch:/root/.sqitch sqitch config --user --list
+    user.email=aleksandr.vin@gmail.com
+    user.name=Aleksandr Vinokurov
+
+
+### Hosted DBMS Deploy
+
+For Postgres:
+
+    $ docker run -it --rm -v ~/.sqitch:/root/.sqitch -v $(pwd):/flipr --workdir=/flipr sqitch deploy db:pg://user@host:port/dbname
+
+For Mysql:
+
+	$ docker run -it --rm -v ~/.sqitch:/root/.sqitch -v $(pwd):/flipr --workdir=/flipr sqitch deploy db:mysql://user@host:port/dbname
+
+
+### Containerized DBMS Deploy
+
+#### Postgres
+
+Running postgres container:
+
+    $ docker run --name db.localhost -e POSTGRES_USER=someuser -e POSTGRES_PASSWORD=somepasswd --publish 5432:5432 -d postgres:9.5
+
+Creating somedb:
+
+    $ docker run -it --link db.localhost:postgres --rm postgres sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U someuser'
+    Password for user someuser:
+    psql (9.5.0)
+    Type "help" for help.
+
+    someuser=# create database somedb;
+    CREATE DATABASE
+    someuser=# ^D\q
+
+    $ docker run -it --rm --link db.localhost:postgres --entrypoint=sh \
+          -v ~/.sqitch:/root/.sqitch -v $(pwd):/flipr --workdir=/flipr \
+          sqitch -c 'sqitch deploy "db:pg://someuser:somepoasswd@$POSTGRES_PORT_5432_TCP_ADDR:$POSTGRES_PORT_5432_TCP_PORT/somedb"'
+
+    Adding registry tables to db:pg://someuser:@172.17.0.3:5432/somedb
+    Deploying changes to db:pg://someuser:@172.17.0.3:5432/somedb
+      + appschema .. ok
+

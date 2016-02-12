@@ -1,10 +1,30 @@
 FROM perl:latest
-RUN cpan App::Sqitch && \
-    cpan DBD::Pg && \
-    cpan DBD::mysql && \
-    apt-get update && \
-    apt-get install postgresql-client-common postgresql-client mysql libdbd-mysql-perl -y --no-install-recommends && \
-    apt-get clean
-VOLUME [/src]
-WORKDIR /src
-CMD ["sqitch"]
+MAINTAINER Aleksandr Vinokurov <aleksandr.vin@gmail.com>
+
+# Postgres support
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    postgresql-client-common \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN cpan \
+    App::Sqitch \
+    DBD::Pg \
+ && rm -rf .cpan/{build,sources}
+
+# MySQL support
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+            libdbd-mysql-perl \
+            mysql-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN cpan \
+    DBD::mysql \
+ && rm -rf .cpan/{build,sources}
+
+ENTRYPOINT ["sqitch"]
+CMD ["--help"]

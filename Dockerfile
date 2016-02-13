@@ -1,5 +1,6 @@
 FROM perl:latest
 MAINTAINER Aleksandr Vinokurov <aleksandr.vin@gmail.com>
+# Based on https://github.com/meticulo3366/docker-sqitch
 
 # Postgres support
 
@@ -17,10 +18,10 @@ RUN cpan \
 # MySQL support
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-            libdbd-mysql-perl \
-            mysql-client \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    libdbd-mysql-perl \
+    mysql-client \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 RUN cpan \
     DBD::mysql \

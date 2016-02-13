@@ -76,6 +76,8 @@ Creating somedb:
     CREATE DATABASE
     someuser=# ^D\q
 
+Deploy on it:
+
     $ docker run -it --rm --link db.localhost:postgres --entrypoint=sh \
           -v ~/.sqitch:/root/.sqitch -v $(pwd):/flipr --workdir=/flipr \
           sqitch -c 'sqitch deploy "db:pg://someuser:somepoasswd@$POSTGRES_PORT_5432_TCP_ADDR:$POSTGRES_PORT_5432_TCP_PORT/somedb"'

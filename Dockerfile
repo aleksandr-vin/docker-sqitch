@@ -27,5 +27,18 @@ RUN cpan \
     DBD::mysql \
  && rm -rf .cpan/{build,sources}
 
+# Remove dev packages
+RUN bash -c 'apt purge -y $(apt list 2>/dev/null | grep \\-dev | cut -d/ -f 1 )' \
+ && apt purge -y \
+    bzr \
+    git \
+    hicolor-icon-theme \
+    libmagic* \
+    m4 \
+    make \
+    mercurial* \
+    subversion \
+ && apt-get autoremove -y
+
 ENTRYPOINT ["sqitch"]
 CMD ["--help"]
